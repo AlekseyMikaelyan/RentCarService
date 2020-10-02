@@ -6,8 +6,7 @@ import nix.finalproject.carrentalservice.entity.CarStatus;
 import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
 import nix.finalproject.carrentalservice.exceptions.ServiceException;
 import nix.finalproject.carrentalservice.repository.CarStatusRepository;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -48,14 +49,14 @@ public class CarStatusServiceTest {
         CarStatusDTO carStatusDTO1 = carStatusService.findCarStatusDTOById(id1);
         CarStatusDTO carStatusDTO2 = carStatusService.findCarStatusDTOById(id2);
 
-        Assert.assertEquals("Available", carStatusDTO1.getStatus());
-        Assert.assertEquals("Broken", carStatusDTO2.getStatus());
+        assertEquals("Available", carStatusDTO1.getStatus());
+        assertEquals("Broken", carStatusDTO2.getStatus());
 
         verify(carStatusRepository).findById(id1);
         verify(carStatusRepository).findById(id2);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test()
     public void methodShouldThrowException() {
         Long absentId = 20L;
         Long presentId = 1L;
@@ -65,8 +66,7 @@ public class CarStatusServiceTest {
         given(carStatusRepository.findById(absentId)).willThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_CAR_STATUS));
         given(carStatusRepository.findById(presentId)).willReturn(Optional.of(carStatus));
 
-        CarStatusDTO carStatusDTO = carStatusService.findCarStatusDTOById(absentId);
-        assertThat(carStatusDTO).isNull();
+        assertThrows(ResponseStatusException.class, () -> carStatusService.findCarStatusDTOById(absentId));
 
         verify(carStatusRepository).findById(absentId);
     }
@@ -82,9 +82,9 @@ public class CarStatusServiceTest {
 
         List<CarStatusDTO> carStatusDTOList = carStatusService.findAllCarStatusDTO();
 
-        Assert.assertEquals(carStatusList.get(0).getStatus(), carStatusDTOList.get(0).getStatus());
-        Assert.assertEquals(carStatusList.get(1).getStatus(), carStatusDTOList.get(1).getStatus());
-        Assert.assertEquals(carStatusList.get(2).getStatus(), carStatusDTOList.get(2).getStatus());
+        assertEquals(carStatusList.get(0).getStatus(), carStatusDTOList.get(0).getStatus());
+        assertEquals(carStatusList.get(1).getStatus(), carStatusDTOList.get(1).getStatus());
+        assertEquals(carStatusList.get(2).getStatus(), carStatusDTOList.get(2).getStatus());
     }
 
     @Test

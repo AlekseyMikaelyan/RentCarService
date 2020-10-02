@@ -5,8 +5,7 @@ import nix.finalproject.carrentalservice.entity.*;
 import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
 import nix.finalproject.carrentalservice.exceptions.ServiceException;
 import nix.finalproject.carrentalservice.repository.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +16,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,14 +68,14 @@ public class CarServiceTest {
         CarDTO carDTO1 = carService.findCarDTOById(id1);
         CarDTO carDTO2 = carService.findCarDTOById(id2);
 
-        Assert.assertEquals("Kangoo", carDTO1.getModel());
-        Assert.assertEquals("206", carDTO2.getModel());
+        assertEquals("Kangoo", carDTO1.getModel());
+        assertEquals("206", carDTO2.getModel());
 
         verify(carRepository).findById(id1);
         verify(carRepository).findById(id2);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test()
     public void methodShouldThrowException() {
         Long absentId = 20L;
         Long presentId = 1L;
@@ -89,8 +90,7 @@ public class CarServiceTest {
         given(carRepository.findById(absentId)).willThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_CAR));
         given(carRepository.findById(presentId)).willReturn(Optional.of(car));
 
-        CarDTO carDTO = carService.findCarDTOById(absentId);
-        assertThat(carDTO).isNull();
+        assertThrows(ResponseStatusException.class, () -> carService.findCarDTOById(absentId));
 
         verify(carRepository).findById(absentId);
     }
@@ -127,9 +127,9 @@ public class CarServiceTest {
 
         List<CarDTO> carDTOList = carService.findAllCarDTO();
 
-        Assert.assertEquals(carList.get(0).getModel(), carDTOList.get(0).getModel());
-        Assert.assertEquals(carList.get(1).getModel(), carDTOList.get(1).getModel());
-        Assert.assertEquals(carList.get(2).getModel(), carDTOList.get(2).getModel());
+        assertEquals(carList.get(0).getModel(), carDTOList.get(0).getModel());
+        assertEquals(carList.get(1).getModel(), carDTOList.get(1).getModel());
+        assertEquals(carList.get(2).getModel(), carDTOList.get(2).getModel());
     }
 
     @Test
@@ -164,8 +164,8 @@ public class CarServiceTest {
 
         List<CarDTO> carDTOList = carService.findAllCarDTOByBrandName(brand1.getBrandName());
 
-        Assert.assertEquals(carList1.get(0).getModel(), carDTOList.get(0).getModel());
-        Assert.assertEquals(carList1.get(1).getModel(), carDTOList.get(1).getModel());
+        assertEquals(carList1.get(0).getModel(), carDTOList.get(0).getModel());
+        assertEquals(carList1.get(1).getModel(), carDTOList.get(1).getModel());
     }
 
     @Test
@@ -198,8 +198,8 @@ public class CarServiceTest {
 
         List<CarDTO> carDTOList = carService.findAllCarDTOByEngine(engineType1.getType());
 
-        Assert.assertEquals(carList1.get(0).getEngineType().getType(), carDTOList.get(0).getEngineType());
-        Assert.assertEquals(carList1.get(1).getEngineType().getType(), carDTOList.get(1).getEngineType());
+        assertEquals(carList1.get(0).getEngineType().getType(), carDTOList.get(0).getEngineType());
+        assertEquals(carList1.get(1).getEngineType().getType(), carDTOList.get(1).getEngineType());
     }
 
     @Test

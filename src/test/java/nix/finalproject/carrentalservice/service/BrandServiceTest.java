@@ -6,8 +6,7 @@ import nix.finalproject.carrentalservice.entity.Brand;
 import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
 import nix.finalproject.carrentalservice.exceptions.ServiceException;
 import nix.finalproject.carrentalservice.repository.BrandRepository;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -46,14 +47,14 @@ public class BrandServiceTest {
         BrandDTO brandDTO1 = brandService.findBrandDTOById(id1);
         BrandDTO brandDTO2 = brandService.findBrandDTOById(id2);
 
-        Assert.assertEquals("Audi", brandDTO1.getBrandName());
-        Assert.assertEquals("BMW", brandDTO2.getBrandName());
+        assertEquals("Audi", brandDTO1.getBrandName());
+        assertEquals("BMW", brandDTO2.getBrandName());
 
         verify(brandRepository).findById(id1);
         verify(brandRepository).findById(id2);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test()
     public void methodShouldThrowException() {
         Long absentId = 20L;
         Long presentId = 1L;
@@ -63,8 +64,7 @@ public class BrandServiceTest {
         given(brandRepository.findById(absentId)).willThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_BRAND));
         given(brandRepository.findById(presentId)).willReturn(Optional.of(brand));
 
-        BrandDTO brandDTO = brandService.findBrandDTOById(absentId);
-        assertThat(brandDTO).isNull();
+        assertThrows(ResponseStatusException.class, () -> brandService.findBrandDTOById(absentId));
 
         verify(brandRepository).findById(absentId);
     }
@@ -80,9 +80,9 @@ public class BrandServiceTest {
 
         List<BrandDTO> dtoBrands = brandService.findAllBrandDTO();
 
-        Assert.assertEquals(brands.get(0).getBrandName(), dtoBrands.get(0).getBrandName());
-        Assert.assertEquals(brands.get(1).getBrandName(), dtoBrands.get(1).getBrandName());
-        Assert.assertEquals(brands.get(2).getBrandName(), dtoBrands.get(2).getBrandName());
+        assertEquals(brands.get(0).getBrandName(), dtoBrands.get(0).getBrandName());
+        assertEquals(brands.get(1).getBrandName(), dtoBrands.get(1).getBrandName());
+        assertEquals(brands.get(2).getBrandName(), dtoBrands.get(2).getBrandName());
     }
 
     @Test

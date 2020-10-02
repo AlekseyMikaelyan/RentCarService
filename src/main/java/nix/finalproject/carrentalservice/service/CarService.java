@@ -115,7 +115,7 @@ public class CarService {
         car.setCarStatus(carStatusRepository.findById(carRequestDTO.getCarStatusId()).orElseThrow(() -> ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_CAR_STATUS)));
         car.setPrice(carRequestDTO.getPrice());
 
-        convertCarToCarDTO(carRepository.save(car));
+        convertCarToCarRequestDTO(carRepository.save(car));
     }
 
     public void deleteById(Long id) {

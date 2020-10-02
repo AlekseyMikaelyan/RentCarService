@@ -7,8 +7,7 @@ import nix.finalproject.carrentalservice.exceptions.ServiceException;
 import nix.finalproject.carrentalservice.repository.CarRepository;
 import nix.finalproject.carrentalservice.repository.ClientRepository;
 import nix.finalproject.carrentalservice.repository.OrderRepository;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,7 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,14 +71,14 @@ public class OrderServiceTest {
         OrderDTO orderDTO1 = orderService.findOrderDTOById(id1);
         OrderDTO orderDTO2 = orderService.findOrderDTOById(id2);
 
-        Assert.assertEquals("Kangoo", orderDTO1.getCarModel());
-        Assert.assertEquals("206", orderDTO2.getCarModel());
+        assertEquals("Kangoo", orderDTO1.getCarModel());
+        assertEquals("206", orderDTO2.getCarModel());
 
         verify(orderRepository).findById(id1);
         verify(orderRepository).findById(id2);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test()
     public void methodShouldThrowException() {
         Long absentId = 20L;
         Long presentId = 1L;
@@ -95,8 +95,7 @@ public class OrderServiceTest {
         given(orderRepository.findById(absentId)).willThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_ORDER));
         given(orderRepository.findById(presentId)).willReturn(Optional.of(order));
 
-        OrderDTO orderDTO = orderService.findOrderDTOById(absentId);
-        assertThat(orderDTO).isNull();
+        assertThrows(ResponseStatusException.class, () -> orderService.findOrderDTOById(absentId));
 
         verify(orderRepository).findById(absentId);
     }
@@ -141,9 +140,9 @@ public class OrderServiceTest {
 
         List<OrderDTO> orderDTOList = orderService.findAllOrderDTO();
 
-        Assert.assertEquals(orderList.get(0).getEndOrder(), orderDTOList.get(0).getEndOrder());
-        Assert.assertEquals(orderList.get(1).getEndOrder(), orderDTOList.get(1).getEndOrder());
-        Assert.assertEquals(orderList.get(2).getEndOrder(), orderDTOList.get(2).getEndOrder());
+        assertEquals(orderList.get(0).getEndOrder(), orderDTOList.get(0).getEndOrder());
+        assertEquals(orderList.get(1).getEndOrder(), orderDTOList.get(1).getEndOrder());
+        assertEquals(orderList.get(2).getEndOrder(), orderDTOList.get(2).getEndOrder());
     }
 
     @Test

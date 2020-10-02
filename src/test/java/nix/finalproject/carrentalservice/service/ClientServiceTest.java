@@ -6,8 +6,7 @@ import nix.finalproject.carrentalservice.entity.Client;
 import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
 import nix.finalproject.carrentalservice.exceptions.ServiceException;
 import nix.finalproject.carrentalservice.repository.ClientRepository;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -49,14 +50,14 @@ public class ClientServiceTest {
         ClientDTO clientDTO1 = clientService.findClientDTOById(id1);
         ClientDTO clientDTO2 = clientService.findClientDTOById(id2);
 
-        Assert.assertEquals("aleks@gmail.com", clientDTO1.getEmail());
-        Assert.assertEquals("ser@gmail.com", clientDTO2.getEmail());
+        assertEquals("aleks@gmail.com", clientDTO1.getEmail());
+        assertEquals("ser@gmail.com", clientDTO2.getEmail());
 
         verify(clientRepository).findById(id1);
         verify(clientRepository).findById(id2);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test()
     public void methodShouldThrowException() {
         Long absentId = 20L;
         Long presentId = 1L;
@@ -66,8 +67,7 @@ public class ClientServiceTest {
         given(clientRepository.findById(absentId)).willThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_CLIENT));
         given(clientRepository.findById(presentId)).willReturn(Optional.of(client));
 
-        ClientDTO clientDTO = clientService.findClientDTOById(absentId);
-        assertThat(clientDTO).isNull();
+        assertThrows(ResponseStatusException.class, () -> clientService.findClientDTOById(absentId));
 
         verify(clientRepository).findById(absentId);
     }
@@ -86,9 +86,9 @@ public class ClientServiceTest {
 
         List<ClientDTO> clientDTOList = clientService.findAllClientDTO();
 
-        Assert.assertEquals(clientList.get(0).getEmail(), clientDTOList.get(0).getEmail());
-        Assert.assertEquals(clientList.get(1).getEmail(), clientDTOList.get(1).getEmail());
-        Assert.assertEquals(clientList.get(2).getEmail(), clientDTOList.get(2).getEmail());
+        assertEquals(clientList.get(0).getEmail(), clientDTOList.get(0).getEmail());
+        assertEquals(clientList.get(1).getEmail(), clientDTOList.get(1).getEmail());
+        assertEquals(clientList.get(2).getEmail(), clientDTOList.get(2).getEmail());
     }
 
     @Test

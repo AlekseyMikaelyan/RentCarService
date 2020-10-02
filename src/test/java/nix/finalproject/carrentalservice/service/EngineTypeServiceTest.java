@@ -6,8 +6,7 @@ import nix.finalproject.carrentalservice.entity.EngineType;
 import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
 import nix.finalproject.carrentalservice.exceptions.ServiceException;
 import nix.finalproject.carrentalservice.repository.EngineTypeRepository;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -48,14 +49,14 @@ public class EngineTypeServiceTest {
         EngineTypeDTO engineTypeDTO1 = engineTypeService.findEngineTypeDTOById(id1);
         EngineTypeDTO engineTypeDTO2 = engineTypeService.findEngineTypeDTOById(id2);
 
-        Assert.assertEquals("1.2", engineTypeDTO1.getEngineCapacity());
-        Assert.assertEquals("1.5", engineTypeDTO2.getEngineCapacity());
+        assertEquals("1.2", engineTypeDTO1.getEngineCapacity());
+        assertEquals("1.5", engineTypeDTO2.getEngineCapacity());
 
         verify(engineTypeRepository).findById(id1);
         verify(engineTypeRepository).findById(id2);
     }
 
-    @Test(expected = ResponseStatusException.class)
+    @Test()
     public void methodShouldThrowException() {
         Long absentId = 20L;
         Long presentId = 1L;
@@ -65,8 +66,7 @@ public class EngineTypeServiceTest {
         given(engineTypeRepository.findById(absentId)).willThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_ENGINE));
         given(engineTypeRepository.findById(presentId)).willReturn(Optional.of(engineType));
 
-        EngineTypeDTO engineTypeDTO = engineTypeService.findEngineTypeDTOById(absentId);
-        assertThat(engineTypeDTO).isNull();
+        assertThrows(ResponseStatusException.class, () -> engineTypeService.findEngineTypeDTOById(absentId));
 
         verify(engineTypeRepository).findById(absentId);
     }
@@ -82,9 +82,9 @@ public class EngineTypeServiceTest {
 
         List<EngineTypeDTO> engineTypeDTOList = engineTypeService.findAllEngineTypeDTO();
 
-        Assert.assertEquals(engineTypeList.get(0).getCapacity(), engineTypeDTOList.get(0).getEngineCapacity());
-        Assert.assertEquals(engineTypeList.get(1).getCapacity(), engineTypeDTOList.get(1).getEngineCapacity());
-        Assert.assertEquals(engineTypeList.get(2).getCapacity(), engineTypeDTOList.get(2).getEngineCapacity());
+        assertEquals(engineTypeList.get(0).getCapacity(), engineTypeDTOList.get(0).getEngineCapacity());
+        assertEquals(engineTypeList.get(1).getCapacity(), engineTypeDTOList.get(1).getEngineCapacity());
+        assertEquals(engineTypeList.get(2).getCapacity(), engineTypeDTOList.get(2).getEngineCapacity());
     }
 
     @Test
