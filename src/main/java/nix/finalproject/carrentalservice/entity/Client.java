@@ -26,49 +26,25 @@ public class Client {
     @Column(name = "id")
     private Long id;
 
-    @Size(min = 2, max = 60, message = "Name must be longer then 2 letters, but shorter then 60")
-    @NotNull(message = "You must enter a name!")
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Size(min = 2, max = 60, message = "Surname must be longer then 2 letters, but shorter then 60")
-    @NotNull(message = "You must enter a surname!")
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Pattern(regexp = "^[+][0-9]{3}[0-9]{2}[0-9]{7}$", message = "You must enter the phone number according to the template - +380990964311")
-    @NotNull(message = "You must enter a phone number!")
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Email
-    @NotNull(message = "You must enter an email!")
     @Column(name = "email")
     private String email;
 
-    @Size(min = 6, message = "Password must be longer then 6 characters")
-    @NotNull(message = "You must enter a password!")
     @Column(name = "password")
     private String password;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders;
 
-    public Client(Long id,
-                  @Size(min = 2, max = 60, message = "Name must be longer then 2 letters, but shorter then 60")
-                  @NotNull(message = "You must enter a name!")
-                          String firstName,
-                  @Size(min = 2, max = 60, message = "Surname must be longer then 2 letters, but shorter then 60")
-                  @NotNull(message = "You must enter a surname!")
-                          String lastName,
-                  @Pattern(regexp = "^[+][0-9]{3}[0-9]{2}[0-9]{7}$", message = "You must enter the phone number according to the template - +380990964311")
-                  @NotNull(message = "You must enter a phone number!")
-                          String phoneNumber,
-                  @Email @NotNull(message = "You must enter an email!")
-                          String email,
-                  @Size(min = 6, message = "Password must be longer then 6 characters")
-                  @NotNull(message = "You must enter a password!")
-                          String password) {
+    public Client(Long id, String firstName, String lastName, String phoneNumber, String email, String password) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
