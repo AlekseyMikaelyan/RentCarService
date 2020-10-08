@@ -25,11 +25,11 @@ public class Car {
     private Brand brand;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "engine_id")
+    @JoinColumn(name = "engine_type_id")
     private EngineType engineType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id")
+    @JoinColumn(name = "car_type_id")
     private CarType carType;
 
     @Column(name = "model", nullable = false)
@@ -42,7 +42,7 @@ public class Car {
     private int yearOfManufacture;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id")
+    @JoinColumn(name = "car_status_id")
     private CarStatus carStatus;
 
     @Column(name = "price", nullable = false)

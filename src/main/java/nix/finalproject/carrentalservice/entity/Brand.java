@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,6 +30,10 @@ public class Brand {
 
     public Brand(Long id, String brandName) {
         this.id = id;
+        this.brandName = brandName;
+    }
+
+    public Brand(String brandName) {
         this.brandName = brandName;
     }
 

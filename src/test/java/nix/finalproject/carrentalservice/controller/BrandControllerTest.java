@@ -1,17 +1,15 @@
 package nix.finalproject.carrentalservice.controller;
 
-import nix.finalproject.carrentalservice.dto.BrandDTO;
+import nix.finalproject.carrentalservice.dto.BrandResponseDTO;
 import nix.finalproject.carrentalservice.dto.request.BrandRequestDTO;
-import nix.finalproject.carrentalservice.entity.Brand;
-import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
-import nix.finalproject.carrentalservice.exceptions.ServiceException;
-import nix.finalproject.carrentalservice.service.BrandService;
+import nix.finalproject.carrentalservice.service.BrandServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -19,21 +17,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BrandController.class)
 public class BrandControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private BrandService brandService;
+    private BrandServiceImpl brandService;
+
+    @BeforeEach
+    void setUp() {
+        brandService = mock(BrandServiceImpl.class);
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(new BrandController(brandService))
+                .build();
+    }
 
     @Test
-    public void findBrandByIdTest() throws Exception {
-        final Long id = 1L;
-        BrandDTO brandDTO = new BrandDTO(id, "Renault");
+    public void getBrandByIdTest() throws Exception {
 
-        when(brandService.findBrandDTOById(id)).thenReturn(brandDTO);
+        Long id = 1L;
+        var response = new BrandResponseDTO(id, "Renault");
+
+        when(brandService.getById(id)).thenReturn(Optional.of(response));
 
         var expectedJson = "{\"id\":" + id + ",\"brandName\":\"Renault\"}";
 
@@ -42,52 +46,74 @@ public class BrandControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson));
 
-        verify(brandService, only()).findBrandDTOById(id);
+        verify(brandService, only()).getById(id);
     }
 
     @Test
-    public void findBrandByAbsentIdTest() throws Exception {
+    public void getBrandByAbsentIdTest() throws Exception {
         final Long id = 1L;
 
-        when(brandService.findBrandDTOById(id)).thenThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_BRAND));
+        when(brandService.getById(id)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/brands/" + id))
                 .andExpect(status().isNotFound());
 
-        verify(brandService, only()).findBrandDTOById(id);
+        verify(brandService, only()).getById(id);
     }
 
     @Test
     public void deleteBrandTest() throws Exception {
+
         Long id = 1L;
-        BrandDTO brandDTO = new BrandDTO(id, "Renault");
+        var response = new BrandResponseDTO(id, "Renault");
+        var expectedJson = "{\"id\":" + id + ",\"brandName\":\"Renault\"}";
 
-        when(brandService.findBrandDTOById(id)).thenReturn(brandDTO);
-        doNothing().when(brandService).deleteById(id);
+        when(brandService.deleteById(id))
+                .thenReturn(Optional.of(response))
+                .thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/brands/" + id)).andExpect(status().isOk());
+        mockMvc.perform(delete("/brands/" + id))
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedJson));
 
-        verify(brandService, only()).deleteById(id);
+        mockMvc.perform(delete("/brands/" + id))
+                .andExpect(status().isNotFound());
+
+        verify(brandService, times(2)).deleteById(id);
+        verifyNoMoreInteractions(brandService);
     }
 
     @Test
     public void createNewBrandTest() throws Exception {
+
+        var request = new BrandRequestDTO("Renault");
         Long id = 1L;
-        var request = new Brand(id, "Renault");
-        var response = new BrandRequestDTO("Renault");
+        var response = new BrandResponseDTO(id, "Renault");
 
-        when(brandService.createNewBrand(request)).thenReturn(response);
+        when(brandService.create(request)).thenReturn(response);
 
-        var expectedJson = "{\"brandName\":\"Renault\"}";
+        var expectedJson = "{\"id\":" + id + ",\"brandName\":\"Renault\"}";
 
         mockMvc.perform(post("/brands")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":" + id + ",\"brandName\":\"Renault\"}"))
+                .content("{\"brandName\":\"Renault\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson));
 
-        verify(brandService, only()).createNewBrand(request);
+        verify(brandService, only()).create(request);
     }
 
+    @Test
+    public void updateBrandTest() throws Exception {
+        var request = new BrandRequestDTO("Renault");
+        Long id = 1L;
+
+        mockMvc.perform(put("/brands/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"brandName\":\"Renault\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(brandService, only()).update(id, request);
+    }
 }

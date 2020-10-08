@@ -37,6 +37,11 @@ public class EngineType {
         this.capacity = capacity;
     }
 
+    public EngineType(String type, String capacity) {
+        this.type = type;
+        this.capacity = capacity;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

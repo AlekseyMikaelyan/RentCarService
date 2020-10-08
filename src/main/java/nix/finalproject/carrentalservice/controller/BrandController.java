@@ -1,45 +1,55 @@
 package nix.finalproject.carrentalservice.controller;
 
-import nix.finalproject.carrentalservice.dto.BrandDTO;
+import nix.finalproject.carrentalservice.dto.BrandResponseDTO;
 import nix.finalproject.carrentalservice.dto.request.BrandRequestDTO;
-import nix.finalproject.carrentalservice.entity.Brand;
-import nix.finalproject.carrentalservice.service.BrandService;
+import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
+import nix.finalproject.carrentalservice.exceptions.ServiceException;
+import nix.finalproject.carrentalservice.service.BrandServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping("/brands")
 public class BrandController {
 
-    private final BrandService brandService;
+    private final BrandServiceImpl brandServiceImpl;
 
     @Autowired
-    public BrandController(BrandService brandService) {
-        this.brandService = brandService;
-    }
-
-    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<BrandDTO> findAll() {
-        return brandService.findAllBrandDTO();
-    }
-
-    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BrandDTO findById(@PathVariable("id") Long id) {
-        return brandService.findBrandDTOById(id);
+    public BrandController(BrandServiceImpl brandServiceImpl) {
+        this.brandServiceImpl = brandServiceImpl;
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public BrandRequestDTO createNewBrand(@RequestBody Brand brand) {
-        return brandService.createNewBrand(brand);
+    public BrandResponseDTO createNewBrand(@Valid @RequestBody BrandRequestDTO request) {
+        return brandServiceImpl.create(request);
     }
 
-    @DeleteMapping(value = "/{id}")
-    public void deleteById(@PathVariable("id") Long id) {
-        brandService.deleteById(id);
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BrandResponseDTO findById(@PathVariable Long id) {
+        return brandServiceImpl.getById(id)
+                .orElseThrow(() -> ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_BRAND));
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PutMapping("/{id}")
+    public void updateBrand(@PathVariable Long id, @Valid @RequestBody BrandRequestDTO request) {
+        brandServiceImpl.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public BrandResponseDTO deleteById(@PathVariable Long id) {
+        return brandServiceImpl.deleteById(id)
+                .orElseThrow(() -> ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_BRAND));
+    }
+
+    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<BrandResponseDTO> findAll() {
+        return brandServiceImpl.findAll();
     }
 }

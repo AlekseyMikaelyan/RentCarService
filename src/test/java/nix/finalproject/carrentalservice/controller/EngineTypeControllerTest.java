@@ -1,38 +1,42 @@
 package nix.finalproject.carrentalservice.controller;
 
-import nix.finalproject.carrentalservice.dto.EngineTypeDTO;
+import nix.finalproject.carrentalservice.dto.EngineTypeResponseDTO;
 import nix.finalproject.carrentalservice.dto.request.EngineTypeRequestDTO;
-import nix.finalproject.carrentalservice.entity.EngineType;
-import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
-import nix.finalproject.carrentalservice.exceptions.ServiceException;
-import nix.finalproject.carrentalservice.service.EngineTypeService;
+import nix.finalproject.carrentalservice.service.EngineTypeServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(EngineTypeController.class)
 public class EngineTypeControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private EngineTypeService engineTypeService;
+    private EngineTypeServiceImpl engineTypeService;
+
+    @BeforeEach
+    void setUp() {
+        engineTypeService = mock(EngineTypeServiceImpl.class);
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(new EngineTypeController(engineTypeService))
+                .build();
+    }
 
     @Test
-    public void findEngineTypeByIdTest() throws Exception {
-        final Long id = 1L;
-        EngineTypeDTO engineTypeDTO = new EngineTypeDTO(id, "Diesel", "1.5");
+    public void getEngineByIdTest() throws Exception {
 
-        when(engineTypeService.findEngineTypeDTOById(id)).thenReturn(engineTypeDTO);
+        Long id = 1L;
+        var response = new EngineTypeResponseDTO(id,"Diesel", "1.5");
+
+        when(engineTypeService.getById(id)).thenReturn(Optional.of(response));
 
         var expectedJson = "{\"id\":" + id + ",\"type\":\"Diesel\",\"engineCapacity\":\"1.5\"}";
 
@@ -41,51 +45,74 @@ public class EngineTypeControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson));
 
-        verify(engineTypeService, only()).findEngineTypeDTOById(id);
+        verify(engineTypeService, only()).getById(id);
     }
 
     @Test
-    public void findEngineTypeByAbsentIdTest() throws Exception {
+    public void getEngineByAbsentIdTest() throws Exception {
         final Long id = 1L;
 
-        when(engineTypeService.findEngineTypeDTOById(id)).thenThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_ENGINE));
+        when(engineTypeService.getById(id)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/engine_types/" + id))
                 .andExpect(status().isNotFound());
 
-        verify(engineTypeService, only()).findEngineTypeDTOById(id);
+        verify(engineTypeService, only()).getById(id);
     }
 
     @Test
-    public void deleteEngineTypeTest() throws Exception {
+    public void deleteEngineTest() throws Exception {
+
         Long id = 1L;
-        EngineTypeDTO engineTypeDTO = new EngineTypeDTO(id, "Diesel", "1.5");
+        var response = new EngineTypeResponseDTO(id,"Diesel", "1.5");
+        var expectedJson = "{\"id\":" + id + ",\"type\":\"Diesel\",\"engineCapacity\":\"1.5\"}";
 
-        when(engineTypeService.findEngineTypeDTOById(id)).thenReturn(engineTypeDTO);
-        doNothing().when(engineTypeService).deleteById(id);
+        when(engineTypeService.deleteById(id))
+                .thenReturn(Optional.of(response))
+                .thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/engine_types/" + id)).andExpect(status().isOk());
+        mockMvc.perform(delete("/engine_types/" + id))
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedJson));
 
-        verify(engineTypeService, only()).deleteById(id);
+        mockMvc.perform(delete("/engine_types/" + id))
+                .andExpect(status().isNotFound());
+
+        verify(engineTypeService, times(2)).deleteById(id);
+        verifyNoMoreInteractions(engineTypeService);
     }
 
     @Test
-    public void createNewCarTypeTest() throws Exception {
+    public void createNewEngineTest() throws Exception {
+
+        var request = new EngineTypeRequestDTO("Diesel","1.5");
         Long id = 1L;
-        var request = new EngineType(id, "Diesel", "1.5");
-        var response = new EngineTypeRequestDTO("Diesel", "1.5");
+        var response = new EngineTypeResponseDTO(id, "Diesel", "1.5");
 
-        when(engineTypeService.createNewEngineType(request)).thenReturn(response);
+        when(engineTypeService.create(request)).thenReturn(response);
 
-        var expectedJson = "{\"type\":\"Diesel\",\"capacity\":\"1.5\"}";
+        var expectedJson = "{\"id\":" + id + ",\"type\":\"Diesel\",\"engineCapacity\":\"1.5\"}";
 
         mockMvc.perform(post("/engine_types")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":" + id + ",\"type\":\"Diesel\",\"capacity\":\"1.5\"}"))
+                .content("{\"type\":\"Diesel\",\"capacity\":\"1.5\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson));
 
-        verify(engineTypeService, only()).createNewEngineType(request);
+        verify(engineTypeService, only()).create(request);
+    }
+
+    @Test
+    public void updateEngineTest() throws Exception {
+        var request = new EngineTypeRequestDTO("Diesel", "1.5");
+        Long id = 1L;
+
+        mockMvc.perform(put("/engine_types/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"Diesel\",\"capacity\":\"1.5\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(engineTypeService, only()).update(id, request);
     }
 }

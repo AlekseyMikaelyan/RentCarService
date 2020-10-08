@@ -33,6 +33,10 @@ public class CarStatus {
         this.status = status;
     }
 
+    public CarStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

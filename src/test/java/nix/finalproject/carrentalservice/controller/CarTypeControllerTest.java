@@ -1,42 +1,42 @@
 package nix.finalproject.carrentalservice.controller;
 
-import nix.finalproject.carrentalservice.dto.CarStatusDTO;
-import nix.finalproject.carrentalservice.dto.CarTypeDTO;
-import nix.finalproject.carrentalservice.dto.request.CarStatusRequestDTO;
+import nix.finalproject.carrentalservice.dto.CarTypeResponseDTO;
 import nix.finalproject.carrentalservice.dto.request.CarTypeRequestDTO;
-import nix.finalproject.carrentalservice.entity.CarStatus;
-import nix.finalproject.carrentalservice.entity.CarType;
-import nix.finalproject.carrentalservice.exceptions.ExceptionMessages;
-import nix.finalproject.carrentalservice.exceptions.ServiceException;
-import nix.finalproject.carrentalservice.service.CarStatusService;
-import nix.finalproject.carrentalservice.service.CarTypeService;
+import nix.finalproject.carrentalservice.service.CarTypeServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CarTypeController.class)
 public class CarTypeControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private CarTypeService carTypeService;
+    private CarTypeServiceImpl carTypeService;
+
+    @BeforeEach
+    void setUp() {
+        carTypeService = mock(CarTypeServiceImpl.class);
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(new CarTypeController(carTypeService))
+                .build();
+    }
 
     @Test
-    public void findCarTypeByIdTest() throws Exception {
-        final Long id = 1L;
-        CarTypeDTO carTypeDTO = new CarTypeDTO(id, "Sedan");
+    public void getCarTypeByIdTest() throws Exception {
 
-        when(carTypeService.findCarTypeDTOById(id)).thenReturn(carTypeDTO);
+        Long id = 1L;
+        var response = new CarTypeResponseDTO(id, "Sedan");
+
+        when(carTypeService.getById(id)).thenReturn(Optional.of(response));
 
         var expectedJson = "{\"id\":" + id + ",\"bodyType\":\"Sedan\"}";
 
@@ -45,51 +45,74 @@ public class CarTypeControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson));
 
-        verify(carTypeService, only()).findCarTypeDTOById(id);
+        verify(carTypeService, only()).getById(id);
     }
 
     @Test
-    public void findCarTypeByAbsentIdTest() throws Exception {
+    public void getCarTypesByAbsentIdTest() throws Exception {
         final Long id = 1L;
 
-        when(carTypeService.findCarTypeDTOById(id)).thenThrow(ServiceException.entityNotFound(ExceptionMessages.CAN_NOT_FIND_CAR_TYPE));
+        when(carTypeService.getById(id)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/car_types/" + id))
                 .andExpect(status().isNotFound());
 
-        verify(carTypeService, only()).findCarTypeDTOById(id);
+        verify(carTypeService, only()).getById(id);
     }
 
     @Test
     public void deleteCarTypeTest() throws Exception {
+
         Long id = 1L;
-        CarTypeDTO carTypeDTO = new CarTypeDTO(id, "Sedan");
+        var response = new CarTypeResponseDTO(id, "Sedan");
+        var expectedJson = "{\"id\":" + id + ",\"bodyType\":\"Sedan\"}";
 
-        when(carTypeService.findCarTypeDTOById(id)).thenReturn(carTypeDTO);
-        doNothing().when(carTypeService).deleteById(id);
+        when(carTypeService.deleteById(id))
+                .thenReturn(Optional.of(response))
+                .thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/car_types/" + id)).andExpect(status().isOk());
+        mockMvc.perform(delete("/car_types/" + id))
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedJson));
 
-        verify(carTypeService, only()).deleteById(id);
+        mockMvc.perform(delete("/car_types/" + id))
+                .andExpect(status().isNotFound());
+
+        verify(carTypeService, times(2)).deleteById(id);
+        verifyNoMoreInteractions(carTypeService);
     }
 
     @Test
     public void createNewCarTypeTest() throws Exception {
+
+        var request = new CarTypeRequestDTO("Sedan");
         Long id = 1L;
-        var request = new CarType(id, "Sedan");
-        var response = new CarTypeRequestDTO("Sedan");
+        var response = new CarTypeResponseDTO(id, "Sedan");
 
-        when(carTypeService.createNewType(request)).thenReturn(response);
+        when(carTypeService.create(request)).thenReturn(response);
 
-        var expectedJson = "{\"bodyType\":\"Sedan\"}";
+        var expectedJson = "{\"id\":" + id + ",\"bodyType\":\"Sedan\"}";
 
         mockMvc.perform(post("/car_types")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":" + id + ",\"bodyType\":\"Sedan\"}"))
+                .content("{\"bodyType\":\"Sedan\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expectedJson));
 
-        verify(carTypeService, only()).createNewType(request);
+        verify(carTypeService, only()).create(request);
+    }
+
+    @Test
+    public void updateCarTypeTest() throws Exception {
+        var request = new CarTypeRequestDTO("Sedan");
+        Long id = 1L;
+
+        mockMvc.perform(put("/car_types/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"bodyType\":\"Sedan\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(carTypeService, only()).update(id, request);
     }
 }

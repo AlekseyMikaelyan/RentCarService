@@ -28,6 +28,10 @@ public class CarType {
     @OneToMany(mappedBy = "carType")
     private List<Car> cars;
 
+    public CarType(String bodyType) {
+        this.bodyType = bodyType;
+    }
+
     public CarType(Long id, String bodyType) {
         this.id = id;
         this.bodyType = bodyType;
