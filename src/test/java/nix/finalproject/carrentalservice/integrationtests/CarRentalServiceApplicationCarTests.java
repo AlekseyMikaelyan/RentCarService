@@ -1,4 +1,4 @@
-package nix.finalproject.carrentalservice;
+package nix.finalproject.carrentalservice.integrationtests;
 
 import nix.finalproject.carrentalservice.dto.CarResponseDTO;
 import nix.finalproject.carrentalservice.dto.request.CarRequestDTO;
